@@ -18,6 +18,7 @@
 
 #include "timer.h"
 #include "uart.h"
+#include "interrupt.h"
 
 /******************************************************************************
 **                      INTERNAL FUNCTION PROTOTYPES
@@ -164,6 +165,8 @@ void DMTimerSetUp(void)
             CM_PER_TIMER7_CLKCTRL_MODULEMODE) != CM_PER_TIMER7_CLKCTRL_MODULEMODE_ENABLE)
     {
     };
+
+    configureMirClear(TINT7);
 }
 
 /*FUNCTION*-------------------------------------------------------
@@ -182,4 +185,30 @@ void Delay(unsigned int mSec)
         DMTimerDisable(SOC_DMTIMER_7_REGS);
         mSec--;
     }
+}
+
+void DelayIrq(unsigned int mSec, int *flag_timer)
+{
+
+    unsigned int countVal = TIMER_OVERFLOW - (mSec * TIMER_1MS_COUNT);
+
+    /* Wait for previous write to complete */
+    DMTimerWaitForWrite(0x2, SOC_DMTIMER_7_REGS);
+
+    /* Load the register with the re-load value */
+    HWREG(SOC_DMTIMER_7_REGS + DMTIMER_TCRR) = countVal;
+
+    *flag_timer = false;
+
+    /* Enable the DMTimer interrupts */
+    HWREG(SOC_DMTIMER_7_REGS + DMTIMER_IRQENABLE_SET) = 0x2;
+
+    /* Start the DMTimer */
+    DMTimerEnable(SOC_DMTIMER_7_REGS);
+
+    while (*flag_timer == false)
+        ;
+
+    /* Disable the DMTimer interrupts */
+    HWREG(SOC_DMTIMER_7_REGS + DMTIMER_IRQENABLE_CLR) = 0x2;
 }

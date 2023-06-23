@@ -1,0 +1,106 @@
+#ifndef _BBB_REGS_H_
+#define BBB__BBB_REGS_H_
+
+/*
+ * =====================================================================================
+ *
+ *       Filename:  bb_regs
+ *
+ *    Description:
+ *
+ *        Version:  1.0
+ *        Created:  23/05/2018 17:47:17
+ *       Revision:  none
+ *       Compiler:  gcc
+ *
+ *         Author:  Francisco Helder (FHC), helderhdw@gmail.com
+ *   Organization:  UFC-Quixadá
+ *
+ * =====================================================================================
+ */
+
+/* Interrupt */
+#define BBB_INTC_BASE 0x48200000
+#define BBB_INTC_SIR_IRQ 0x48200040
+#define BBB_INTC_CONTROL 0x48200048
+#define BBB_INTC_ILR 0x48200100
+#define BBB_INTC_MIR_CLEAR2 0x482000C8
+#define BBB_INTC_MIR_CLEAR3 0x482000E8
+#define BBB_INTC_SYSCONFIG 0x48200010
+#define BBB_INTC_SYSSTATUS 0x48200014
+#define BBB_INTC_THRESHOLD 0x48200068
+
+/* UART0 */
+#define BBB_UART0_BASE 0x44E09000
+#define BBB_UART0_RHR 0x44E09000
+#define BBB_UART0_THR 0x44E09000
+#define BBB_UART0_LSR 0x44E09014
+
+/* Watch Dog Timer */
+#define BBB_WDT_BASE 0x44E35000
+#define BBB_WDT_WSPR 0x44E35048
+#define BBB_WDT_WWPS 0x44E35034
+
+/* Clock */
+#define BBB_CM_PER_GPIO1_CLKCTRL 0x44E000AC
+#define BBB_CM_PER_RTC_RTC_CLKCTRL 0x44E00800
+#define BBB_CM_PER_RTC_CLKSTCTRL 0x44E00804
+#define BBB_CM_PER_TIMER7_CLKCTRL 0x44E0007C
+#define BBB_SOC_CM_DPLL_CLKSEL_TIMER7_CLK 0x44E00504
+
+/* pin name */
+#define BBB_CM_PER_GPMCA7_REGS 0x44E1085C
+#define BBB_CM_PER_GPMCA8_REGS 0x44E10860
+#define BBB_CM_PER_GPMCAD12_REGS 0x44E10830
+#define BBB_CM_PER_GPMCBEn1_REGS 0x44E10878
+
+/* GPIO */
+#define BBB_GPIO1_IRQSTATUS_0 0x4804C02C
+#define BBB_GPIO1_IRQSTATUS_1 0x4804C030
+#define BBB_GPIO1_IRQSTATUS_SET_0 0x4804C034
+#define BBB_GPIO1_IRQSTATUS_SET_1 0x4804C038
+#define BBB_GPIO1_OE 0x4804C134
+#define BBB_GPIO1_DATAIN 0x4804C138
+#define BBB_GPIO1_RISINGDETECT 0x4804C148
+#define BBB_GPIO1_CLEARDATAOUT 0x4804C190
+#define BBB_GPIO1_SETDATAOUT 0x4804C194
+
+/* The Input clock is selected as 24MHz. So for 1ms set the count to 0x5DC0.
+ *If the input clock is changed to different source this value has to be updated
+ *accordingly.
+ */
+#define BBB_TIMER_1MS_COUNT 0x5DC0u
+#define BBB_TIMER_OVERFLOW 0xFFFFFFFFu
+
+/* DMTIMER */
+#define BBB_SOC_DMTIMER_7_REGS 0x4804A000
+#define BBB_DMTIMER_TIDR 0x4804A000
+#define BBB_DMTIMER_TIOCP_CFG 0x4804A010
+#define BBB_DMTIMER_IRQ_EOI 0x4804A020
+#define BBB_DMTIMER_IRQSTATUS_RAW 0x4804A024
+#define BBB_DMTIMER_IRQSTATUS 0x4804A028
+#define BBB_DMTIMER_IRQENABLE_SET 0x4804A02C
+#define BBB_DMTIMER_IRQENABLE_CLR 0x4804A030
+#define BBB_DMTIMER_IRQWAKEEN 0x4804A034
+#define BBB_DMTIMER_TCLR 0x4804A038
+#define BBB_DMTIMER_TCRR 0x4804A03C
+#define BBB_DMTIMER_TLDR 0x4804A040
+#define BBB_DMTIMER_TTGR 0x4804A044
+#define BBB_DMTIMER_TWPS 0x4804A048
+#define BBB_DMTIMER_TMAR 0x4804A04C
+#define BBB_DMTIMER_TCAR(n) (0x50 + (((n)-1) * 8))
+#define BBB_DMTIMER_TSICR 0x4804A054
+
+/* RTC */
+#define BBB_RTC_BASE 0x44E3E000
+#define BBB_SECONDS_REG 0x44E3E000
+#define BBB_MINUTES_REG 0x44E3E004
+#define BBB_HOURS_REG 0x44E3E008
+#define BBB_RTC_CTRL_REG 0x44E3E040
+#define BBB_RTC_STATUS_REG 0x44E3E044
+#define BBB_RTC_INTERRUPTS_REG 0x44E3E048
+#define BBB_RTC_OSC_REG 0x44E3E054
+#define BBB_KICK0R 0x44E3E06C
+#define BBB_KICK1R 0x44E3E070
+
+#endif //__BB_REGS_H__

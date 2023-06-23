@@ -6,6 +6,8 @@
     "system.h": "c",
     "bbb_regs.h": "c",
     "soc_am335x.h": "c",
-    "gpio.h": "c"
+    "gpio.h": "c",
+    "led_animations.h": "c",
+    "uart.h": "c"
   }
 }

@@ -1,66 +1,43 @@
-/*
- * =====================================================================================
- *
- *       Filename:  main.c
- *
- *    Description:
- *
- *        Version:  1.0
- *        Created:  12/02/2017 20:05:55
- *       Revision:  none
- *       Compiler:  arm-none-eabi-gcc
- *
- *         Author:  Francisco Helder (FHC), helderhdw@gmail.com
- *   Organization:  UFC-Quixadá
- *
- * =====================================================================================
- */
-
-#include "uart.h"
+#include "bbb_regs.h"
+#include "soc_AM335x.h"
+#include "hw_intc.h"
+#include "hw_types.h"
+#include "interrupt.h"
+#include "timer.h"
 #include "gpio.h"
 #include "wdt.h"
-#include "timer.h"
-#include "interrupt.h"
-#include "system.h"
+#include "uart.h"
+#include "led_animations.h"
 
-/*****************************************************************************
-**                INTERNAL MACRO DEFINITIONS
-*****************************************************************************/
-typedef enum _state
+int flag_timer = false;
+int flagBtn1 = 1;
+int flagBtn2 = 1;
+
+void btn1Handler(void)
 {
-	SEQ1 = 1,
-	SEQ2,
-	SEQ3,
-	SEQ4,
-} state;
+	uartPutString(UART0, "B1", 2);
+}
+void btn2Handler(void)
+{
+	uartPutString(UART0, "B2", 2);
+}
 
-/*****************************************************************************
-**                INTERNAL FUNCTION PROTOTYPES
-*****************************************************************************/
-void anim_2(unsigned int *op);
-void anim_1(unsigned int *op);
-void ledON(gpioMod, ucPinNumber);
-void ledOFF(gpioMod, ucPinNumber);
-void animOff(unsigned int *op);
+void timerIrqHandler(void)
+{
 
-void btn1Handler(void);
-void btn2Handler(void);
-void gpio2IqrHandler(void);
+	/* Clear the status of the interrupt flags */
+	HWREG(BBB_DMTIMER_IRQSTATUS) = 0x2;
 
-/*****************************************************************************
-**                					INTERNAL VARIABLES
-*****************************************************************************/
-unsigned int flagBtn1 = 1;
-unsigned int flagBtn2 = 1;
+	flag_timer = true;
 
-/*
- * ===  FUNCTION  ======================================================================
- *         Name:  main
- *  Description:
- * =====================================================================================
- */
+	/* Stop the DMTimer */
+	DMTimerDisable(SOC_DMTIMER_7_REGS);
 
-void gpioSetup()
+	// Pisca o led
+	//((flag_timer++ & 0x1) ? ledOn() : ledOff());
+}
+
+void setupGpio()
 {
 	gpioInitModule(GPIO1);
 
@@ -90,6 +67,22 @@ void gpioSetup()
 	configureIrqGpio(GPIO2, 4);
 }
 
+void ISR_Handler(void)
+{
+	unsigned int irq_number = HWREG(BBB_INTC_SIR_IRQ) & 0x7f;
+	if (irq_number == TINT7)
+	{
+		uartPutString(UART0, "IRQ -> TIMER\r\n", 14);
+		timerIrqHandler();
+	}
+	else if (irq_number == GPIOINT2A)
+	{
+		gpio2IqrHandler(&flagBtn1, &flagBtn2);
+	}
+	/* Reconhece a IRQ */
+	HWREG(BBB_INTC_CONTROL) = 0x1;
+}
+
 int main(void)
 {
 	unsigned int op1 = SEQ1;
@@ -97,166 +90,25 @@ int main(void)
 	unsigned int op3 = SEQ1;
 
 	watchdogTimerDisable();
-	InitIrq();
-	gpioSetup();
 	uartInitModule(UART0, 115200, STOP1, PARITY_NONE, FLOW_OFF);
 	DMTimerSetUp();
-	uartPutC(UART0, 'R');
-	AddIqrHandler(GPIOINT2A, gpio2IqrHandler);
-	uartPutC(UART0, 'S');
+	setupGpio();
+
+	uartPutString(UART0, "SISTEMA INICIADO\r\n", 18);
 
 	while (true)
 	{
 		if (flagBtn2 == HIGH)
 		{
-			animOff(&op3);
+			animOff(&op3, &flag_timer);
 			continue;
 		}
 
 		if (flagBtn1 == HIGH)
-			anim_1(&op1);
+			anim_1(&op1, &flag_timer);
 		else
-			anim_2(&op2);
-
-		Delay(500);
+			anim_2(&op2, &flag_timer);
 	}
 
 	return (0);
-} /* ----------  end of function main  ---------- */
-
-void anim_1(unsigned int *op)
-{
-	switch (*op)
-	{
-	case SEQ1:
-		// 0 1 1 0
-		ledOFF(GPIO1, 21);
-		ledOFF(GPIO1, 24);
-		ledON(GPIO1, 22);
-		ledON(GPIO1, 23);
-		Delay(1000);
-		*op = SEQ2;
-		break;
-	case SEQ2:
-		// 0 0 1 1
-		ledOFF(GPIO1, 21);
-		ledOFF(GPIO1, 22);
-		ledON(GPIO1, 23);
-		ledON(GPIO1, 24);
-		Delay(1000);
-		*op = SEQ3;
-		break;
-	case SEQ3:
-		// 1 0 0 1
-		ledOFF(GPIO1, 22);
-		ledOFF(GPIO1, 23);
-		ledON(GPIO1, 21);
-		ledON(GPIO1, 24);
-		Delay(1000);
-		*op = SEQ4;
-		break;
-	case SEQ4:
-		// 1 1 0 0
-		ledOFF(GPIO1, 21);
-		ledON(GPIO1, 22);
-		ledOFF(GPIO1, 24);
-		ledON(GPIO1, 21);
-		Delay(1000);
-		ledON(GPIO2, 1);
-		Delay(1000);
-		ledOFF(GPIO2, 1);
-		*op = SEQ1;
-		break;
-	default:
-		break;
-	}
-}
-
-void anim_2(unsigned int *op)
-{
-	switch (*op)
-	{
-	case SEQ1:
-		ledON(GPIO1, 21);
-		ledON(GPIO1, 22);
-		ledON(GPIO1, 23);
-		ledON(GPIO1, 24);
-		ledON(GPIO2, 1);
-		Delay(1000);
-		*op = SEQ2;
-		break;
-	case SEQ2:
-		ledOFF(GPIO1, 21);
-		ledOFF(GPIO1, 22);
-		ledOFF(GPIO1, 23);
-		ledOFF(GPIO1, 24);
-		ledOFF(GPIO2, 1);
-		Delay(1000);
-		*op = SEQ1;
-		break;
-	default:
-		break;
-	}
-}
-
-void animOff(unsigned int *op)
-{
-	switch (*op)
-	{
-	case SEQ1:
-		ledON(GPIO2, 1);
-		Delay(1000);
-		*op = SEQ2;
-		break;
-	case SEQ2:
-		ledOFF(GPIO2, 1);
-		Delay(1000);
-		*op = SEQ1;
-		break;
-	default:
-		break;
-	}
-}
-
-void gpio2IqrHandler(void)
-{
-	if (checkIrqGpioPin(GPIO2, 3))
-	{
-		btn1Handler();
-		clearIrqGpio(GPIO2, 3);
-	}
-	else if (checkIrqGpioPin(GPIO2, 4))
-	{
-		btn2Handler();
-		clearIrqGpio(GPIO2, 4);
-	}
-}
-
-void btn1Handler(void)
-{
-	uartPutString(UART0, "B1", 2);
-	flagBtn1 = !flagBtn1;
-}
-void btn2Handler(void)
-{
-	uartPutString(UART0, "B2", 2);
-	flagBtn2 = !flagBtn2;
-
-	if (flagBtn2 == HIGH)
-	{
-		ledOFF(GPIO1, 21);
-		ledOFF(GPIO1, 22);
-		ledOFF(GPIO1, 23);
-		ledOFF(GPIO1, 24);
-	}
-}
-
-void ledON(gpioMod mod, ucPinNumber pin)
-{
-	gpioSetPinValue(mod, pin, HIGH);
-}
-
-void ledOFF(gpioMod mod, ucPinNumber pin)
-{
-	gpioSetPinValue(mod, pin, LOW);
 }

@@ -63,11 +63,11 @@ _start:
 
 
 .irq_handler:
-    stmfd sp!, {r0-r12, lr}
-    MRS r11, spsr
-	bl GlobalIqrHandler
-    dsb
-    msr spsr, r11
-    ldmfd sp!, {r0-r12, lr}
-    subs pc, lr, #4
+        stmfd sp!, {r0-r12, lr}
+        MRS r11, spsr
+	    bl ISR_Handler 
+        dsb
+        msr spsr, r11
+        ldmfd sp!, {r0-r12, lr}
+        subs pc, lr, #4
 

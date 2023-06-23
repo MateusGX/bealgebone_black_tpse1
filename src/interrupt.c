@@ -6,25 +6,13 @@ unsigned int getIntcMirClear(unsigned int iqrNum)
 {
   unsigned int module = iqrNum >> 5;
 
-  switch (module)
-  {
-  case 0:
-  case 1:
-  case 2:
-  case 3:
-    return SOC_AINTC_REGS + INTC_MIR_CLEAR(module);
-  default:
-    return 0x0;
-  }
+  return SOC_AINTC_REGS + INTC_MIR_CLEAR(module);
 }
 
 void configureMirClear(unsigned int iqrNum)
 {
   unsigned int mir_clear_addr = getIntcMirClear(iqrNum);
-  if (mir_clear_addr == 0x0)
-    return;
-
-  HWREG(mir_clear_addr) = iqrNum & REG_BIT_MASK;
+  HWREG(mir_clear_addr) |= 1 << (iqrNum & REG_BIT_MASK);
 }
 
 void configureIrqGpio(gpioMod mod, ucPinNumber pin)
@@ -39,12 +27,13 @@ void configureIrqGpio(gpioMod mod, ucPinNumber pin)
     case GPIO1:
       HWREG(SOC_GPIO_1_REGS + GPIO_IRQSTATUS_SET_0) |= 1 << pin;
       HWREG(SOC_GPIO_1_REGS + GPIO_RISINGDETECT) |= 1 << pin;
-      // HWREG(SOC_GPIO_1_REGS + GPIO_DEBOUNCENABLE) |= 1 << pin;
+      HWREG(SOC_GPIO_1_REGS + GPIO_DEBOUNCENABLE) |= 1 << pin;
+      HWREG(SOC_GPIO_1_REGS + GPIO_DEBOUNCINGTIME) = DEBOUNCING_TIME;
       break;
     case GPIO2:
       HWREG(SOC_GPIO_2_REGS + GPIO_IRQSTATUS_SET_0) |= 1 << pin;
       HWREG(SOC_GPIO_2_REGS + GPIO_RISINGDETECT) |= 1 << pin;
-      // HWREG(SOC_GPIO_2_REGS + GPIO_DEBOUNCENABLE) |= 1 << pin;
+      HWREG(SOC_GPIO_1_REGS + GPIO_DEBOUNCINGTIME) = DEBOUNCING_TIME;
       break;
     case GPIO3:
       break;
@@ -98,16 +87,4 @@ pinLevel checkIrqGpioPin(gpioMod mod, ucPinNumber pin)
   }
 
   return LOW;
-}
-
-void InitIrq(void)
-{
-  /* Reset the ARM interrupt controller */
-  HWREG(SOC_AINTC_REGS + INTC_SYSCONFIG) |= (1U << 0);
-  HWREG(SOC_AINTC_REGS + INTC_IDLE) |= (1U << 1) | (1U << 0);
-
-  for (int i = 0; i < NUM_MAX_INTERRUPTS; i++)
-  {
-    ResetIqrHandler(i);
-  }
 }

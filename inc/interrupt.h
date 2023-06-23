@@ -5,9 +5,10 @@
 #include "hw_types.h"
 #include "gpio.h"
 #include "soc_AM335x.h"
-#include "system.h"
+#include "uart.h"
 
 #define GPIOINT2A 32
+#define DEBOUNCING_TIME 0xFF
 
 void InitIrq(void);
 pinLevel checkIrqGpioPin(gpioMod mod, ucPinNumber pin);
