@@ -1,0 +1,11 @@
+{
+  "files.associations": {
+    "*.asm": "asm-intel-x86-generic",
+    "syslog.h": "c",
+    "interrupt.h": "c",
+    "system.h": "c",
+    "bbb_regs.h": "c",
+    "soc_am335x.h": "c",
+    "gpio.h": "c"
+  }
+}
