@@ -97,13 +97,12 @@ int main(void)
 	unsigned int op3 = SEQ1;
 
 	watchdogTimerDisable();
+	InitIrq();
 	gpioSetup();
 	uartInitModule(UART0, 115200, STOP1, PARITY_NONE, FLOW_OFF);
 	DMTimerSetUp();
 	uartPutC(UART0, 'R');
-	InitIrq();
 	AddIqrHandler(GPIOINT2A, gpio2IqrHandler);
-	configureMirClear(95);
 	uartPutC(UART0, 'S');
 
 	while (true)
