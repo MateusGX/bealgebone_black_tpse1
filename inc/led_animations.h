@@ -14,8 +14,9 @@ typedef enum _state
 #include "timer.h"
 #include "interrupt.h"
 
-void anim_1(unsigned int *op, int *flag_timer);
-void anim_2(unsigned int *op, int *flag_timer);
-void animOff(unsigned int *op, int *flag_timer);
-void gpio2IqrHandler(int *btn1_flag, int *btn2_flag);
+void ledOff(gpioMod mod, ucPinNumber pin);
+void ledOn(gpioMod mod, ucPinNumber pin);
+void anim_1(unsigned int *op);
+void anim_2(unsigned int *op);
+void animOff(unsigned int *op);
 #endif

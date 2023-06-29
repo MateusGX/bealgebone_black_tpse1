@@ -24,6 +24,7 @@
 #include "pad.h"
 #include "soc_AM335x.h"
 #include "hw_types.h"
+#include "interrupt.h"
 
 #define GPIO_REVISION 0x000
 #define GPIO_SYSCONFIG 0x010
@@ -90,4 +91,11 @@ int gpioGetDirection(gpioMod, ucPinNumber);
 void gpioSetPinValue(gpioMod, ucPinNumber, pinLevel);
 pinLevel gpioGetPinValue(gpioMod, ucPinNumber);
 bool gpioCheckValidPortPin(gpioMod mod, ucPinNumber pin);
+
+void gpio2IqrHandler(int *btn1_flag, int *btn2_flag);
+
+pinLevel checkIrqGpioPin(gpioMod mod, ucPinNumber pin);
+void clearIrqGpio(gpioMod mod, ucPinNumber pin);
+void configureIrqGpio(gpioMod mod, ucPinNumber pin);
+
 #endif /*GPIO_H_ */

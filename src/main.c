@@ -7,35 +7,11 @@
 #include "gpio.h"
 #include "wdt.h"
 #include "uart.h"
+#include "system.h"
 #include "led_animations.h"
 
-int flag_timer = false;
-int flagBtn1 = 1;
-int flagBtn2 = 1;
-
-void btn1Handler(void)
-{
-	uartPutString(UART0, "B1", 2);
-}
-void btn2Handler(void)
-{
-	uartPutString(UART0, "B2", 2);
-}
-
-void timerIrqHandler(void)
-{
-
-	/* Clear the status of the interrupt flags */
-	HWREG(BBB_DMTIMER_IRQSTATUS) = 0x2;
-
-	flag_timer = true;
-
-	/* Stop the DMTimer */
-	DMTimerDisable(SOC_DMTIMER_7_REGS);
-
-	// Pisca o led
-	//((flag_timer++ & 0x1) ? ledOn() : ledOff());
-}
+static int flagGpio2Btn1 = 1;
+static int flagGpio2Btn2 = 1;
 
 void setupGpio()
 {
@@ -53,11 +29,13 @@ void setupGpio()
 	gpioSetDirection(GPIO1, 24, OUTPUT);
 
 	gpioInitModule(GPIO2);
-	gpioPinMuxSetup(GPIO2, 1); // led
-	gpioPinMuxSetup(GPIO2, 3); // TIMER 7 -btn
-	gpioPinMuxSetup(GPIO2, 4); // TIMER 6 -btn
+	gpioPinMuxSetup(GPIO2, 1);	// led
+	gpioPinMuxSetup(GPIO1, 12); // led irq
+	gpioPinMuxSetup(GPIO2, 3);	// TIMER 7 -btn
+	gpioPinMuxSetup(GPIO2, 4);	// TIMER 6 -btn
 
 	gpioSetDirection(GPIO2, 1, OUTPUT);
+	gpioSetDirection(GPIO1, 12, OUTPUT);
 	gpioSetDirection(GPIO2, 3, INPUT);
 	gpioSetDirection(GPIO2, 4, INPUT);
 
@@ -67,20 +45,9 @@ void setupGpio()
 	configureIrqGpio(GPIO2, 4);
 }
 
-void ISR_Handler(void)
+void gpio2Handle(void)
 {
-	unsigned int irq_number = HWREG(BBB_INTC_SIR_IRQ) & 0x7f;
-	if (irq_number == TINT7)
-	{
-		uartPutString(UART0, "IRQ -> TIMER\r\n", 14);
-		timerIrqHandler();
-	}
-	else if (irq_number == GPIOINT2A)
-	{
-		gpio2IqrHandler(&flagBtn1, &flagBtn2);
-	}
-	/* Reconhece a IRQ */
-	HWREG(BBB_INTC_CONTROL) = 0x1;
+	gpio2IqrHandler(&flagGpio2Btn1, &flagGpio2Btn2);
 }
 
 int main(void)
@@ -94,20 +61,24 @@ int main(void)
 	DMTimerSetUp();
 	setupGpio();
 
+	// IRQs
+	AddIrq(TINT7, timerIrqHandler);
+	AddIrq(GPIOINT2A, gpio2Handle);
+
 	uartPutString(UART0, "SISTEMA INICIADO\r\n", 18);
 
 	while (true)
 	{
-		if (flagBtn2 == HIGH)
+		if (flagGpio2Btn2 == HIGH)
 		{
-			animOff(&op3, &flag_timer);
+			animOff(&op3);
 			continue;
 		}
 
-		if (flagBtn1 == HIGH)
-			anim_1(&op1, &flag_timer);
+		if (flagGpio2Btn1 == HIGH)
+			anim_1(&op1);
 		else
-			anim_2(&op2, &flag_timer);
+			anim_2(&op2);
 	}
 
 	return (0);

@@ -473,6 +473,7 @@ void DMTimerEnable(unsigned int);
 void DMTimerDisable(unsigned int);
 void DMTimerSetUp(void);
 void Delay(unsigned int);
-void DelayIrq(unsigned int mSec, int *flag_timer);
+void DelayIrq(unsigned int mSec);
+void timerIrqHandler(void);
 
 #endif // TIMER_H_

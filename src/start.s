@@ -52,6 +52,8 @@ _start:
     and r0, r0, #~(CPSR_I)       // enable IRQ
     msr cpsr, r0
 
+    bl IrqInit
+
     /* IRQ Handler */
     ldr r0, =_irq
     ldr r1, =.irq_handler
@@ -65,7 +67,7 @@ _start:
 .irq_handler:
         stmfd sp!, {r0-r12, lr}
         MRS r11, spsr
-	    bl ISR_Handler 
+	    bl IrqGlobalHandler 
         dsb
         msr spsr, r11
         ldmfd sp!, {r0-r12, lr}

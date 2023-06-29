@@ -28,6 +28,8 @@
 **                      INTERNAL VARIABLE DEFINITIONS
 *******************************************************************************/
 
+static int flag_timer = false;
+
 /*FUNCTION*-------------------------------------------------------
  *
  * Function Name : DMTimerWritePostedStatusGet
@@ -187,7 +189,7 @@ void Delay(unsigned int mSec)
     }
 }
 
-void DelayIrq(unsigned int mSec, int *flag_timer)
+void DelayIrq(unsigned int mSec)
 {
 
     unsigned int countVal = TIMER_OVERFLOW - (mSec * TIMER_1MS_COUNT);
@@ -198,7 +200,7 @@ void DelayIrq(unsigned int mSec, int *flag_timer)
     /* Load the register with the re-load value */
     HWREG(SOC_DMTIMER_7_REGS + DMTIMER_TCRR) = countVal;
 
-    *flag_timer = false;
+    flag_timer = false;
 
     /* Enable the DMTimer interrupts */
     HWREG(SOC_DMTIMER_7_REGS + DMTIMER_IRQENABLE_SET) = 0x2;
@@ -206,9 +208,20 @@ void DelayIrq(unsigned int mSec, int *flag_timer)
     /* Start the DMTimer */
     DMTimerEnable(SOC_DMTIMER_7_REGS);
 
-    while (*flag_timer == false)
+    while (flag_timer == false)
         ;
 
     /* Disable the DMTimer interrupts */
     HWREG(SOC_DMTIMER_7_REGS + DMTIMER_IRQENABLE_CLR) = 0x2;
+}
+
+void timerIrqHandler(void)
+{
+    /* Clear the status of the interrupt flags */
+    HWREG(SOC_DMTIMER_7_REGS + DMTIMER_IRQSTATUS) = 0x2;
+
+    flag_timer = true;
+
+    /* Stop the DMTimer */
+    DMTimerDisable(SOC_DMTIMER_7_REGS);
 }

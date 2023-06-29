@@ -11,9 +11,6 @@
 #define DEBOUNCING_TIME 0xFF
 
 void InitIrq(void);
-pinLevel checkIrqGpioPin(gpioMod mod, ucPinNumber pin);
 unsigned int getIntcMirClear(unsigned int iqrNum);
 void configureMirClear(unsigned int iqrNum);
-void clearIrqGpio(gpioMod mod, ucPinNumber pin);
-void configureIrqGpio(gpioMod mod, ucPinNumber pin);
 #endif
