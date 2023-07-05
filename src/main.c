@@ -10,8 +10,8 @@
 #include "system.h"
 #include "led_animations.h"
 
-static int flagGpio2Btn1 = 1;
-static int flagGpio2Btn2 = 1;
+static int flagGpio2Btn1 = HIGH;
+static int flagGpio2Btn2 = HIGH;
 
 void setupGpio()
 {
